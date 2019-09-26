@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 setup(
     # Name of the project.
-    name='diet-journal-api',
+    name='diet-journal',
 
     # We will follow semver versioning for each release. If you're
     # unfamiliar with it you can read more about it here:
@@ -42,5 +42,15 @@ setup(
         # Example: 'flask>=1.1.1,<2'
         # This will install any flask version greater than 1.1.1 but less
         # than the major version 2.
+        'Django~=2.2.5',
+        'Click~=7.0.0',
+        'djangorestframework~=3.10.2',
+        'waitress~=1.3.0',
     ],
+
+    entry_points={
+        'console_scripts': [
+            'app = server.core.command:main',
+        ],
+    },
 )
