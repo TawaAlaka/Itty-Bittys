@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
     help='Port to bind to.',
 )
 def main(**options):
+    """Base command for the CLI.
+
+    Args:
+        **options: Arguments passed in from the CLI call.
+    """
     from waitress import serve
     from django import setup
     from django.core.handlers.wsgi import WSGIHandler

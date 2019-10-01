@@ -8,8 +8,10 @@ from . import models
 
 
 class UserCreationForm(forms.ModelForm):
-    """A form for creating new users. Includes all the required
-    fields, plus a repeated password."""
+    """
+    Admin form for creating new users. Includes all the required
+    fields, plus a repeated password.
+    """
     password_one = forms.CharField(
         label='Password', widget=forms.PasswordInput,
     )
@@ -39,7 +41,8 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserChangeForm(forms.ModelForm):
-    """A form for updating users. Includes all the fields on
+    """
+    Admin form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.
     """
@@ -47,7 +50,10 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = models.User
-        fields = ('email', 'password', 'first_name', 'last_name', 'is_active', 'is_admin', 'is_analyst')
+        fields = (
+            'email', 'password', 'first_name', 'last_name',
+            'is_active', 'is_admin', 'is_analyst',
+        )
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -88,7 +94,6 @@ class UserAdmin(BaseUserAdmin):
 admin.site.unregister(Group)
 admin.site.register(models.Condition)
 admin.site.register(models.Info)
-
 admin.site.register(models.Food)
 admin.site.register(models.Ailment)
 admin.site.register(models.Log)

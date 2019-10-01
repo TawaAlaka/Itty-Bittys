@@ -21,6 +21,7 @@ from . import views
 
 router = SimpleRouter()
 
+# API Router information.
 router.register(r'ailments', views.AilmentViewSet)
 router.register(r'conditions', views.ConditionViewSet)
 router.register(r'foods', views.FoodViewSet)
@@ -28,6 +29,6 @@ router.register(r'logs', views.LogViewSet)
 router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    path('admin/', admin.site.urls),  # Admin page
+    path('api/', include(router.urls)),  # API route
 ]

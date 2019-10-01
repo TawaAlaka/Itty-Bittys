@@ -4,7 +4,17 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 class UserManager(BaseUserManager):
+    """Manager of all user objects."""
     def create_user(self, email, password=None):
+        """Creates a user based on email and password.
+
+        Args:
+            email: Email of the user.
+            password: Password of the user.
+
+        Returns:
+            Created user.
+        """
         if not email:
             raise ValueError('Users must have an email address')
         user = self.model(
@@ -15,6 +25,18 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password):
+        """Creates a superuser based on email and password.
+
+        Used when createsuperuser is called form the django
+        management CLI.
+
+        Args:
+            email: Email of the user.
+            password: Password of the user.
+
+        Returns:
+            Created user.
+        """
         user = self.create_user(email, password)
         user.is_admin = True
         user.save(using=self._db)
@@ -22,12 +44,24 @@ class UserManager(BaseUserManager):
 
 
 class Info(models.Model):
+    """User information.
+
+    Attributes:
+        birth_date: Date the user was born.
+        weight: Weight of the user.
+        height: Height of the user.
+    """
     birth_date = models.DateField()
     weight = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
 
 
 class Condition(models.Model):
+    """Long term condition associated with a user.
+
+    Attributes:
+        name: Name of the condition.
+    """
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -35,6 +69,21 @@ class Condition(models.Model):
 
 
 class User(AbstractBaseUser):
+    """User object.
+
+    Attributes:
+        email: Email of the user. Unique across users.
+        first_name: First name of the user.
+        last_name: Last name of the user.
+        is_active: If the user is currently active. Disable this instead
+            of deleting the user.
+        is_admin: If the user is able to access the admin page.
+        is_analyst: If the user has access to analyst information.
+        conditions: Any long term conditions associated with the user.
+        info: Information associated with the user. The presence of this
+            determines if the user is an end user using the daily
+            nutrition logs.
+    """
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
 
@@ -52,18 +101,38 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return f'{self.email} ({self.full_name})'
+        """String display of the user object.
+
+        Returns:
+            Full name of the user
+        """
+        return self.full_name
 
     @property
     def full_name(self):
+        """Full name of the user.
+
+        Returns:
+            Full name of the user.
+        """
         return f'{self.first_name} {self.last_name}'
 
     @property
     def is_staff(self):
+        """If the user is staff. Returns true of the user is admin.
+
+        Returns:
+            If the user is staff.
+        """
         return self.is_admin
 
     @property
     def is_consumer(self):
+        """If the user is a consumer. Returns true if they have user info.
+
+        Returns:
+            If the user is a consumer.
+        """
         return self.info_id is not None
 
     def has_perm(self, perm, obj=None):
@@ -78,10 +147,24 @@ class User(AbstractBaseUser):
 
 
 class Ailment(models.Model):
+    """Short term ailment associated with a particular day.
+
+    Attributes:
+        name: Name of the ailment.
+    """
     name = models.CharField(max_length=255, unique=True)
 
 
 class Food(models.Model):
+    """Food that a user has eaten.
+
+    Attributes:
+        name: Name of the food.
+        calories: Number of calories in the food.
+        carbohydrates: Grams of carbohydrates in the food.
+        protein: Grams of proteins in the food.
+        fats: Grams of fats in the food.
+    """
     name = models.CharField(max_length=255)
     calories = models.PositiveIntegerField()
     carbohydrates = models.PositiveIntegerField()
@@ -93,6 +176,12 @@ class Food(models.Model):
 
 
 class Log(models.Model):
+    """Daily log for the user.
+
+    Attributes:
+        user: User associated with the log.
+        date: Date the log is associated with.
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
 
@@ -101,14 +190,28 @@ class Log(models.Model):
 
 
 class Status(models.Model):
+    """Correlation of an ailment with a daily log.
+
+    Attributes:
+        log: Daily log the ailment is associated with.
+        ailment: Ailment associated with the daily log.
+        time: Time the ailment was recorded.
+    """
     log = models.ForeignKey(
         Log, on_delete=models.CASCADE, related_name='statuses',
     )
-    condition = models.ForeignKey(Ailment, on_delete=models.PROTECT)
+    ailment = models.ForeignKey(Ailment, on_delete=models.PROTECT)
     time = models.TimeField(null=True)
 
 
 class Meal(models.Model):
+    """Correlation of a food with a daily log.
+
+    Attributes:
+        log: Daily log the food is associated with.
+        time: Time the food was recorded.
+        food: Food associated with the daily log.
+    """
     log = models.ForeignKey(Log, on_delete=models.CASCADE, related_name='meals')
     time = models.TimeField(null=True)
     food = models.ForeignKey(
