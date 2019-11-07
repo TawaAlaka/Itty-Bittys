@@ -13,11 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 
 from . import views
+from . import admin
 
 router = SimpleRouter()
 
@@ -30,5 +30,6 @@ router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Admin page
+    path('api/auth/', views.AuthView.as_view()),  # Authentication
     path('api/', include(router.urls)),  # API route
 ]

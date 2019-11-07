@@ -45,6 +45,8 @@ setup(
         'Django~=2.2.5',
         'Click~=7.0.0',
         'djangorestframework~=3.10.2',
+        'psycopg2~=2.8.3',
+        'python-dotenv~=0.10.3',
         'waitress~=1.3.0',
     ],
 

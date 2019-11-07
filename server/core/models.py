@@ -55,6 +55,9 @@ class Info(models.Model):
     weight = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
 
+    def __str__(self):
+        return f'{self.birth_date} {self.weight}lb {self.height}in'
+
 
 class Condition(models.Model):
     """Long term condition associated with a user.
@@ -96,6 +99,7 @@ class User(AbstractBaseUser):
     conditions = models.ManyToManyField(Condition, blank=True)
     info = models.OneToOneField(
         Info, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='user'
     )
 
     objects = UserManager()
@@ -154,6 +158,9 @@ class Ailment(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Food(models.Model):
     """Food that a user has eaten.
@@ -183,25 +190,31 @@ class Log(models.Model):
         date: Date the log is associated with.
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField()
+    ailments = models.ManyToManyField(Ailment, related_name='logs')
 
     def __str__(self):
         return f'{self.user.full_name}: {self.date}'
 
 
-class Status(models.Model):
-    """Correlation of an ailment with a daily log.
-
-    Attributes:
-        log: Daily log the ailment is associated with.
-        ailment: Ailment associated with the daily log.
-        time: Time the ailment was recorded.
-    """
-    log = models.ForeignKey(
-        Log, on_delete=models.CASCADE, related_name='statuses',
-    )
-    ailment = models.ForeignKey(Ailment, on_delete=models.PROTECT)
-    time = models.TimeField(null=True)
+# class Status(models.Model):
+#     """Correlation of an ailment with a daily log.
+#
+#     Attributes:
+#         log: Daily log the ailment is associated with.
+#         ailment: Ailment associated with the daily log.
+#         time: Time the ailment was recorded.
+#     """
+#     log = models.ForeignKey(
+#         Log, on_delete=models.CASCADE, related_name='statuses',
+#     )
+#     ailment = models.ForeignKey(Ailment, on_delete=models.PROTECT)
+#
+#     class Meta:
+#         verbose_name_plural = 'statuses'
+#
+#     def __str__(self):
+#         return f'{self.log} - {self.ailment}'
 
 
 class Meal(models.Model):
@@ -212,11 +225,40 @@ class Meal(models.Model):
         time: Time the food was recorded.
         food: Food associated with the daily log.
     """
+    BREAKFAST = 'BREAKFAST'
+    LUNCH = 'LUNCH'
+    DINNER = 'DINNER'
+    SNACK = 'SNACK'
+    TIME_CHOICES = (
+        (BREAKFAST, 'Breakfast'),
+        (LUNCH, 'Lunch'),
+        (DINNER, 'Dinner'),
+        (SNACK, 'Snack'),
+    )
+
     log = models.ForeignKey(Log, on_delete=models.CASCADE, related_name='meals')
-    time = models.TimeField(null=True)
+    time = models.CharField(max_length=255, choices=TIME_CHOICES)
+    count = models.PositiveIntegerField(default=1)
     food = models.ForeignKey(
         Food, on_delete=models.PROTECT, related_name='meals',
     )
 
     def __str__(self):
         return f'{self.log} - {self.time} {self.food}'
+
+
+class Ticket(models.Model):
+    """Error that occurred with the mobile application.
+
+    Attributes:
+        user: User who had the issue.
+        created_on: When the
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='tickets',
+    )
+    created_on = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+
+    def __str__(self):
+        return f'{self.created_on}: {self.user}'

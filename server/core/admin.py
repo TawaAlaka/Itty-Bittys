@@ -1,68 +1,28 @@
-from django import forms
 from django.contrib import admin
+from django.contrib.admin import AdminSite
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.utils.translation import gettext_lazy as _
 
 from . import models
+from .forms import UserChangeForm, UserCreationForm
 
 
-class UserCreationForm(forms.ModelForm):
-    """
-    Admin form for creating new users. Includes all the required
-    fields, plus a repeated password.
-    """
-    password_one = forms.CharField(
-        label='Password', widget=forms.PasswordInput,
-    )
-    password_two = forms.CharField(
-        label='Password confirmation', widget=forms.PasswordInput,
-    )
-
-    class Meta:
-        model = models.User
-        fields = ('email', 'first_name', 'last_name', 'is_analyst')
-
-    def clean_password_two(self):
-        # Check that the two password entries match
-        password_one = self.cleaned_data.get("password_one")
-        password_two = self.cleaned_data.get("password_two")
-        if password_one and password_two and password_one != password_two:
-            raise forms.ValidationError("Passwords don't match")
-        return password_two
-
-    def save(self, commit=True):
-        # Save the provided password in hashed format
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password_one"])
-        if commit:
-            user.save()
-        return user
+class CustomAdminSite(AdminSite):
+    site_header = _('Health Log Administration')
+    site_title = _('Health Log Administration')
 
 
-class UserChangeForm(forms.ModelForm):
-    """
-    Admin form for updating users. Includes all the fields on
-    the user, but replaces the password field with admin's
-    password hash display field.
-    """
-    password = ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = models.User
-        fields = (
-            'email', 'password', 'first_name', 'last_name',
-            'is_active', 'is_admin', 'is_analyst',
-        )
-
-    def clean_password(self):
-        # Regardless of what the user provides, return the initial value.
-        # This is done here, rather than on the field, because the
-        # field does not have access to the initial value
-        return self.initial["password"]
+class ConditionInlineAdmin(admin.TabularInline):
+    model = models.User.conditions.through
+    extra = 1
 
 
-@admin.register(models.User)
+class AilmentInlineAdmin(admin.TabularInline):
+    model = models.Log.ailments.through
+    extra = 1
+
+
 class UserAdmin(BaseUserAdmin):
     # The forms to add and change user instances
     form = UserChangeForm
@@ -83,19 +43,57 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'password_one', 'password_two')}
-        ),
+            'fields': (
+                'email', 'first_name', 'last_name',
+                'password_one', 'password_two',
+            ),
+        }),
     )
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
     filter_horizontal = ()
+    inlines = (ConditionInlineAdmin,)
 
 
-admin.site.unregister(Group)
-admin.site.register(models.Condition)
-admin.site.register(models.Info)
-admin.site.register(models.Food)
-admin.site.register(models.Ailment)
-admin.site.register(models.Log)
-admin.site.register(models.Meal)
-admin.site.register(models.Status)
+class InfoAdmin(admin.ModelAdmin):
+    model = models.Info
+    list_display = ('user', 'birth_date', 'weight', 'height')
+    search_fields = ('user',)
+
+
+class FoodAdmin(admin.ModelAdmin):
+    model = models.Food
+    list_display = ('name', 'calories', 'carbohydrates', 'protein', 'fats')
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+class LogAdmin(admin.ModelAdmin):
+    model = models.Log
+    list_display = ('date', 'user')
+    search_fields = ('user',)
+    ordering = ('-date',)
+
+
+class MealAdmin(admin.ModelAdmin):
+    model = models.Meal
+    list_display = ('log', 'time', 'food')
+    search_fields = ('log', 'food',)
+    list_filter = ('time',)
+
+
+class TicketAdmin(admin.ModelAdmin):
+    model = models.Ticket
+    list_display = ('created_on', 'user')
+    search_fields = ('message',)
+
+
+site = CustomAdminSite()
+site.register(models.User, UserAdmin)
+site.register(models.Condition)
+site.register(models.Info, InfoAdmin)
+site.register(models.Food, FoodAdmin)
+site.register(models.Ailment)
+site.register(models.Log, LogAdmin)
+site.register(models.Meal, MealAdmin)
+site.register(models.Ticket, TicketAdmin)
