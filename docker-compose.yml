@@ -6,6 +6,17 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_DB: diet_journal
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: healthlog
+      POSTGRES_USER: healthlog
+      POSTGRES_PASSWORD: healthlog
+
+#  application:
+#    build: .
+#    ports:
+#      - 8000:80
+#    environment:
+#      HEALTH_LOG_SECRET: secret
+#      HEALTH_LOG_DB_HOST: database
+#      HEALTH_LOG_DB_NAME: healthlog
+#      HEALTH_LOG_DB_USER: healthlog
+#      HEALTH_LOG_DB_PASSWORD: healthlog

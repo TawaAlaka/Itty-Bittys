@@ -96,7 +96,9 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_analyst = models.BooleanField(default=False)
-    conditions = models.ManyToManyField(Condition, blank=True)
+    conditions = models.ManyToManyField(
+        Condition, blank=True, related_name='users',
+    )
     info = models.OneToOneField(
         Info, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='user'
@@ -189,32 +191,12 @@ class Log(models.Model):
         user: User associated with the log.
         date: Date the log is associated with.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='logs')
     date = models.DateField()
-    ailments = models.ManyToManyField(Ailment, related_name='logs')
+    ailments = models.ManyToManyField(Ailment, related_name='logs', blank=True)
 
     def __str__(self):
         return f'{self.user.full_name}: {self.date}'
-
-
-# class Status(models.Model):
-#     """Correlation of an ailment with a daily log.
-#
-#     Attributes:
-#         log: Daily log the ailment is associated with.
-#         ailment: Ailment associated with the daily log.
-#         time: Time the ailment was recorded.
-#     """
-#     log = models.ForeignKey(
-#         Log, on_delete=models.CASCADE, related_name='statuses',
-#     )
-#     ailment = models.ForeignKey(Ailment, on_delete=models.PROTECT)
-#
-#     class Meta:
-#         verbose_name_plural = 'statuses'
-#
-#     def __str__(self):
-#         return f'{self.log} - {self.ailment}'
 
 
 class Meal(models.Model):

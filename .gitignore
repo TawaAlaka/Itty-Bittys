@@ -6,6 +6,7 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
+*.tfvars
 
 # Crash log files
 crash.log
@@ -155,3 +156,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+.idea/

@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="header">
+  <div class="header__icon">
+    <i class="fas fa-book-medical"></i> HL
+  </div>
+  <div class="header__user">
+    {{ request.user.full_name }}
+  </div>
+</header>
+<div class="charts__container">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header__container">
+        <div class="card-header__title">TOP FOOD CHOICES</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-group">
+        <div class="chart-group__form">
+          {% if top_food_form.non_field_errors %}
+            <div class="alert alert--danger">
+              {% for error in top_food_form.non_field_errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <form method="post" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label>Age Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ top_food_form.min_age }}
+              </div>
+              <div class="form-group__item">
+                {{ top_food_form.max_age }}
+              </div>
+            </div>
+            {{ top_food_form.condition.label_tag }}
+            {{ top_food_form.condition }}
+            {% if top_food_form.condition.errors %}
+              {% include 'core/errors.html' with errors=top_food_form.condition.errors %}
+            {% endif %}
+            {{ top_food_form.ailment.label_tag }}
+            {{ top_food_form.ailment }}
+            {% if top_food_form.ailment.errors %}
+              {% include 'core/errors.html' with errors=top_food_form.ailment.errors %}
+            {% endif %}
+            <label>Date Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ top_food_form.min_date }}
+              </div>
+              <div class="form-group__item">
+                {{ top_food_form.max_date }}
+              </div>
+            </div>
+            {{ top_food_form.limit.label_tag }}
+            {{ top_food_form.limit }}
+            {% if top_food_form.limit.errors %}
+              {% include 'core/errors.html' with errors=top_food_form.limit.errors %}
+            {% endif %}
+            <input type="hidden" name="form_name" value="top_food">
+            <input class="button button--block" type="submit" value="SUBMIT">
+          </form>
+        </div>
+        <div class="chart-group__results">
+          <table class="chart-group__table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% if top_food_results %}
+              {% for result in top_food_results %}
+                <tr>
+                  <td>{{ result.name }}</td>
+                  <td>{{ result.total }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td style="text-align: center;" colspan="2">NO DATA</td></tr>
+            {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header__container">
+        <div class="card-header__title">TOP TEMPORARY AILMENTS</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-group">
+        <div class="chart-group__form">
+          {% if top_ailment_form.non_field_errors %}
+            <div class="alert alert--danger">
+              {% for error in top_ailment_form.non_field_errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <form method="post" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label>Age Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ top_ailment_form.min_age }}
+              </div>
+              <div class="form-group__item">
+                {{ top_ailment_form.max_age }}
+              </div>
+            </div>
+            {{ top_ailment_form.condition.label_tag }}
+            {{ top_ailment_form.condition }}
+            {% if top_ailment_form.condition.errors %}
+              {% include 'core/errors.html' with errors=top_ailment_form.condition.errors %}
+            {% endif %}
+            {{ top_ailment_form.food.label_tag }}
+            {{ top_ailment_form.food }}
+            {% if top_ailment_form.food.errors %}
+              {% include 'core/errors.html' with errors=top_ailment_form.food.errors %}
+            {% endif %}
+            <label>Date Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ top_ailment_form.min_date }}
+              </div>
+              <div class="form-group__item">
+                {{ top_ailment_form.max_date }}
+              </div>
+            </div>
+            {{ top_ailment_form.limit.label_tag }}
+            {{ top_ailment_form.limit }}
+            {% if top_ailment_form.limit.errors %}
+              {% include 'core/errors.html' with errors=top_ailment_form.limit.errors %}
+            {% endif %}
+            <input type="hidden" name="form_name" value="top_ailment">
+            <input class="button button--block" type="submit" value="SUBMIT">
+          </form>
+        </div>
+        <div class="chart-group__results">
+          <table class="chart-group__table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% if top_ailment_results %}
+              {% for result in top_ailment_results %}
+                <tr>
+                  <td>{{ result.name }}</td>
+                  <td>{{ result.total }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td style="text-align: center;" colspan="2">NO DATA</td></tr>
+            {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header__container">
+        <div class="card-header__title">TOP TEMPORARY AILMENTS</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-group">
+        <div class="chart-group__form">
+          {% if top_condition_form.non_field_errors %}
+            <div class="alert alert--danger">
+              {% for error in top_condition_form.non_field_errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <form method="post" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label>Age Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ top_condition_form.min_age }}
+              </div>
+              <div class="form-group__item">
+                {{ top_condition_form.max_age }}
+              </div>
+            </div>
+            {{ top_condition_form.ailment.label_tag }}
+            {{ top_condition_form.ailment }}
+            {% if top_condition_form.ailment.errors %}
+              {% include 'core/errors.html' with errors=top_condition_form.ailment.errors %}
+            {% endif %}
+            {{ top_condition_form.food.label_tag }}
+            {{ top_condition_form.food }}
+            {% if top_condition_form.food.errors %}
+              {% include 'core/errors.html' with errors=top_condition_form.food.errors %}
+            {% endif %}
+            {{ top_condition_form.limit.label_tag }}
+            {{ top_condition_form.limit }}
+            {% if top_condition_form.limit.errors %}
+              {% include 'core/errors.html' with errors=top_condition_form.limit.errors %}
+            {% endif %}
+            <input type="hidden" name="form_name" value="top_condition">
+            <input class="button button--block" type="submit" value="SUBMIT">
+          </form>
+        </div>
+        <div class="chart-group__results">
+          <table class="chart-group__table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% if top_condition_results %}
+              {% for result in top_condition_results %}
+                <tr>
+                  <td>{{ result.name }}</td>
+                  <td>{{ result.total }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td style="text-align: center;" colspan="2">NO DATA</td></tr>
+            {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card"></div>
+</div>
+{% endblock %}

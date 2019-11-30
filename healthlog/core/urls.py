@@ -13,7 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
+import re
+from django.urls import path, include, re_path
+from django.conf import settings
+from django.views.static import serve
+from django.contrib.auth import views as auth_views
 from rest_framework.routers import SimpleRouter
 
 from . import views
@@ -26,10 +30,24 @@ router.register(r'ailments', views.AilmentViewSet)
 router.register(r'conditions', views.ConditionViewSet)
 router.register(r'foods', views.FoodViewSet)
 router.register(r'logs', views.LogViewSet)
-router.register(r'users', views.UserViewSet)
+router.register(r'meals', views.MealViewSet)
 
 urlpatterns = [
+    path('', views.HomeView.as_view(), name='index'),
+    path('login/', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path(
+        'registration/', views.AnalystRegistrationView.as_view(),
+        name='analyst-registration',
+    ),
     path('admin/', admin.site.urls),  # Admin page
     path('api/auth/', views.AuthView.as_view()),  # Authentication
+    path('api/registration/', views.RegistrationView.as_view()),
+    path('api/users/me/', views.UserView.as_view()),
     path('api/', include(router.urls)),  # API route
+] + [
+    re_path(
+        r'^%s(?P<path>.*)$' % re.escape(settings.STATIC_URL.lstrip('/')),
+        serve, {'document_root': settings.STATIC_ROOT}
+    ),
 ]

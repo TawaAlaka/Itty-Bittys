@@ -1,0 +1,24 @@
+html {
+  font-size: 87.5%;
+  height: 100%;
+}
+
+body {
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  color: #333333;
+  background-color: #FBFBFB;
+  height: 100%;
+}
+
+*, ::after, ::before {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}

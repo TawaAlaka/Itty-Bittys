@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="centered">
+  <div class="centered__content">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header__container">
+          <div class="card-header__title">Registration</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'analyst-registration' %}">
+          {% csrf_token %}
+          {{ form.email.label_tag }}
+          {{ form.email }}
+          {% if form.email.errors %}
+            {% include 'core/errors.html' with errors=form.email.errors %}
+          {% endif %}
+          {{ form.first_name.label_tag }}
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            {% include 'core/errors.html' with errors=form.first_name.errors %}
+          {% endif %}
+          {{ form.last_name.label_tag }}
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            {% include 'core/errors.html' with errors=form.last_name.errors %}
+          {% endif %}
+          {{ form.password.label_tag }}
+          {{ form.password }}
+          {% if form.password.errors %}
+            {% include 'core/errors.html' with errors=form.password.errors %}
+          {% endif %}
+          {{ form.password_repeated.label_tag }}
+          {{ form.password_repeated }}
+          {% if form.password_repeated.errors %}
+            {% include 'core/errors.html' with errors=form.password_repeated.errors %}
+          {% endif %}
+          <input type="submit" class="button button--block" value="submit">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

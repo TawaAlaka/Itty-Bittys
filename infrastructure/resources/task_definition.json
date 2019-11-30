@@ -1,0 +1,24 @@
+[
+  {
+    "name": "${task_name}",
+    "image": "${task_image}",
+    "essential": true,
+    "memoryReservation": 512,
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 80,
+        "protocol": "tcp"
+      }
+    ],
+    "environment": [
+      {"name": "HEALTH_LOG_SECRET", "value":  "${secret}"},
+      {"name": "HEALTH_LOG_ALLOWED_HOSTS", "value": "${allowed_hosts}"},
+      {"name": "HEALTH_LOG_DB_HOST", "value": "${db_host}"},
+      {"name": "HEALTH_LOG_DB_PORT", "value": "${db_port}"},
+      {"name": "HEALTH_LOG_DB_NAME", "value": "${db_name}"},
+      {"name": "HEALTH_LOG_DB_USER", "value": "${db_user}"},
+      {"name": "HEALTH_LOG_DB_PASSWORD", "value": "${db_password}"}
+    ]
+  }
+]

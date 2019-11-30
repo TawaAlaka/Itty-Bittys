@@ -16,7 +16,7 @@ from typing import Optional
 
 import dotenv
 
-ENVIRONMENT_PREFIX = 'DIET_JOURNAL'
+ENVIRONMENT_PREFIX = 'HEALTH_LOG'
 
 
 def get_env(name: str, default: Optional[str] = None) -> str:
@@ -50,8 +50,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.admin',
     'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
 
-    'server.core',
+    'healthlog.core',
 ]
 
 MIDDLEWARE = [
@@ -64,7 +66,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
-ROOT_URLCONF = 'server.core.urls'
+ROOT_URLCONF = 'healthlog.core.urls'
 
 TEMPLATES = [
     {
@@ -82,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'server.core.wsgi.application'
+WSGI_APPLICATION = 'healthlog.core.wsgi.application'
 
 
 # Database
@@ -90,11 +92,11 @@ WSGI_APPLICATION = 'server.core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_env('db_name', 'diet_journal'),
-        'USER': get_env('db_user'),
-        'PASSWORD': get_env('db_password'),
         'HOST': get_env('db_host', 'localhost'),
         'PORT': get_env('db_port', '5432'),
+        'NAME': get_env('db_name', 'healthlog'),
+        'USER': get_env('db_user'),
+        'PASSWORD': get_env('db_password'),
     }
 }
 
@@ -141,6 +143,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 STATIC_URL = get_env('static_url', '/static/')
+STATIC_ROOT = os.path.join(BASE_DIR, '../static/')
 
 # Logging
 # Removes control of logging from Django and accesses the logging
@@ -153,14 +156,28 @@ logger = logging.getLogger('')
 logger.setLevel('INFO')
 logger.addHandler(console)
 
-
 AUTH_USER_MODEL = 'core.User'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+DEFAULT_ADMIN_EMAIL = get_env('default_admin_email')
+DEFAULT_ADMIN_PASSWORD = get_env('default_admin_password')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': (
+        'rest_framework.pagination.PageNumberPagination'
+    ),
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+        'healthlog.core.permissions.IsAPIUser',
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
