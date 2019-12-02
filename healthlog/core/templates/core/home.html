@@ -8,6 +8,9 @@
   <div class="header__user">
     {{ request.user.full_name }}
   </div>
+  <div class="header__logout">
+    <a class="button" href="{% url 'logout' %}">Logout</a>
+  </div>
 </header>
 <div class="charts__container">
   <div class="card">
@@ -174,7 +177,7 @@
   <div class="card">
     <div class="card-header">
       <div class="card-header__container">
-        <div class="card-header__title">TOP TEMPORARY AILMENTS</div>
+        <div class="card-header__title">TOP CHRONIC CONDITIONS</div>
       </div>
     </div>
     <div class="card-body">
@@ -242,6 +245,62 @@
       </div>
     </div>
   </div>
-  <div class="card"></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header__container">
+        <div class="card-header__title">AVERAGE BMI</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-group">
+        <div class="chart-group__form">
+          {% if average_bmi_form.non_field_errors %}
+            <div class="alert alert--danger">
+              {% for error in average_bmi_form.non_field_errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <form method="post" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label>Age Range:</label>
+            <div class="form-group">
+              <div class="form-group__item">
+                {{ average_bmi_form.min_age }}
+              </div>
+              <div class="form-group__item">
+                {{ average_bmi_form.max_age }}
+              </div>
+            </div>
+            {{ average_bmi_form.ailment.label_tag }}
+            {{ average_bmi_form.ailment }}
+            {% if average_bmi_form.ailment.errors %}
+              {% include 'core/errors.html' with errors=average_bmi_form.ailment.errors %}
+            {% endif %}
+            {{ average_bmi_form.food.label_tag }}
+            {{ average_bmi_form.food }}
+            {% if average_bmi_form.food.errors %}
+              {% include 'core/errors.html' with errors=average_bmi_form.food.errors %}
+            {% endif %}
+            {{ average_bmi_form.condition.label_tag }}
+            {{ average_bmi_form.condition }}
+            {% if average_bmi_form.condition.errors %}
+              {% include 'core/errors.html' with errors=average_bmi_form.condition.errors %}
+            {% endif %}
+            <input type="hidden" name="form_name" value="average_bmi">
+            <input class="button button--block" type="submit" value="SUBMIT">
+          </form>
+        </div>
+        <div class="chart-group__results chart-group__results--number">
+          {% if average_bmi_result %}
+            {{ average_bmi_result }}
+          {% else %}
+            NO DATA
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

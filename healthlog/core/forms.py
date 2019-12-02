@@ -114,6 +114,28 @@ class TopChronicConditionForm(forms.Form):
             )
 
 
+class AverageBMIForm(forms.Form):
+    min_age = forms.IntegerField(min_value=0, required=False)
+    max_age = forms.IntegerField(required=False)
+    condition = forms.ModelChoiceField(
+        models.Condition.objects.all(), required=False,
+    )
+    ailment = forms.ModelChoiceField(
+        models.Ailment.objects.all(), required=False,
+    )
+    food = forms.ModelChoiceField(
+        models.Food.objects.all(), required=False,
+    )
+
+    def clean(self):
+        min_age = self.cleaned_data.get('min_age')
+        max_age = self.cleaned_data.get('max_age')
+        if min_age is not None and max_age is not None and min_age > max_age:
+            raise forms.ValidationError(
+                'Maximum age should be greater than the minimum age.',
+            )
+
+
 class UserCreationForm(forms.ModelForm):
     """
     Admin form for creating new users. Includes all the required

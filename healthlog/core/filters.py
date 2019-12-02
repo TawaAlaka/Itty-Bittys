@@ -26,3 +26,12 @@ class MealFilter(filters.FilterSet):
     class Meta:
         model = models.Meal
         fields = []
+
+
+class LogFilter(filters.FilterSet):
+    before = filters.DateFilter(field_name='date', lookup_expr='lte')
+    after = filters.DateFilter(field_name='date', lookup_expr='gte')
+
+    class Meta:
+        model = models.Log
+        fields = []

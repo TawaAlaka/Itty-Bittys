@@ -2,6 +2,7 @@ from typing import Dict
 from datetime import date, timedelta
 
 from django.contrib.auth import login
+
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
@@ -10,7 +11,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from django.db.models import Count
+from django.db.models import Count, Avg, F, Value, FloatField
+from django.db.models.functions import Cast
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet, mixins
@@ -21,6 +23,7 @@ from rest_framework.authtoken.models import Token
 
 from . import models, serializers, filters, forms
 from .permissions import IsUnauthenticated
+from .mixins import AnalystRequiredMixin
 
 
 class AnalystRegistrationView(TemplateView):
@@ -51,7 +54,7 @@ class AnalystRegistrationView(TemplateView):
         return super(TemplateView, self).render_to_response(context)
 
 
-class HomeView(TemplateView):
+class HomeView(AnalystRequiredMixin, TemplateView):
     template_name = 'core/home.html'
 
     def _get_top_food_context(self, context: Dict, form_name: str):
@@ -94,10 +97,10 @@ class HomeView(TemplateView):
         max_date = form.cleaned_data['max_date']
         if max_date is not None:
             queryset = queryset.filter(meals__log__date__lte=max_date)
-        limit = form.cleaned_data.get('limit', 10)
+        limit = form.cleaned_data.get('limit') or 5
         queryset = queryset.values('name').annotate(
             total=Count('meals'),
-        ).order_by('total')
+        ).order_by('-total').filter(total__gte=1)
         results = [result for result in queryset[:limit]]
         context['top_food_results'] = results
         context['top_food_form'] = form
@@ -156,10 +159,10 @@ class HomeView(TemplateView):
         max_date = form.cleaned_data['max_date']
         if max_date is not None:
             queryset = queryset.filter(logs__date__lte=max_date)
-        limit = form.cleaned_data.get('limit', 10)
+        limit = form.cleaned_data.get('limit') or 5
         queryset = queryset.values('name').annotate(
             total=Count('logs'),
-        ).order_by('total')
+        ).order_by('-total').filter(total__gte=1)
         results = [result for result in queryset[:limit]]
         context['top_ailment_results'] = results
         context['top_ailment_form'] = form
@@ -212,10 +215,10 @@ class HomeView(TemplateView):
         food = form.cleaned_data['food']
         if food is not None:
             queryset = queryset.filter(users__logs__meals__food=food)
-        limit = form.cleaned_data.get('limit', 10)
+        limit = form.cleaned_data.get('limit') or 5
         queryset = queryset.values('name').annotate(
             total=Count('users'),
-        ).order_by('total')
+        ).order_by('-total').filter(total__gte=1)
         results = [result for result in queryset[:limit]]
         context['top_condition_results'] = results
         context['top_condition_form'] = form
@@ -226,7 +229,65 @@ class HomeView(TemplateView):
             form_data['ailment'] = form_data['ailment'].pk
         self.request.session['top_condition_results'] = results
         self.request.session['top_condition_form'] = form_data
-        print(context['top_condition_results'])
+
+    def _get_average_bmi_context(self, context: Dict, form_name: str):
+        result = self.request.session.get('average_bmi_result')
+        previous_data = self.request.session.get('average_bmi_form', {})
+        if (
+            not self.request.POST
+            or (self.request.POST and not form_name == 'average_bmi')
+        ):
+            context['average_bmi_form'] = forms.AverageBMIForm(
+                previous_data,
+            )
+            context['average_bmi_result'] = result
+            return
+        form = forms.AverageBMIForm(self.request.POST)
+        if not form.is_valid():
+            context['average_bmi_form'] = form
+            context['average_bmi_result'] = {}
+            return
+        queryset = models.User.objects.all()
+        min_age = form.cleaned_data['min_age']
+        if min_age is not None:
+            threshold = date.today() - timedelta(days=365 * min_age)
+            queryset = queryset.filter(
+                info__birth_date__lte=threshold
+            )
+        max_age = form.cleaned_data['max_age']
+        if max_age is not None:
+            threshold = date.today() - timedelta(days=365 * max_age)
+            queryset = queryset.filter(
+                info__birth_date__gte=threshold
+            )
+        ailment = form.cleaned_data['ailment']
+        if ailment is not None:
+            queryset = queryset.filter(logs__ailments=ailment)
+        food = form.cleaned_data['food']
+        if food is not None:
+            queryset = queryset.filter(logs__meals__food=food)
+        condition = form.cleaned_data['condition']
+        if condition is not None:
+            queryset = queryset.filter(logs__user__conditions=condition)
+        queryset = queryset.values('id').annotate(bmi=(
+            Cast(Value(703) * F('info__weight'), FloatField())
+            / Cast(F('info__height') * F('info__height'), FloatField())
+        )).aggregate(average_bmi=Avg('bmi'))
+        result = (
+            round(queryset['average_bmi'], 2)
+            if queryset['average_bmi'] else None
+        )
+        context['average_bmi_result'] = result
+        context['average_bmi_form'] = form
+        form_data = form.cleaned_data.copy()
+        if form_data['food']:
+            form_data['food'] = form_data['food'].pk
+        if form_data['ailment']:
+            form_data['ailment'] = form_data['ailment'].pk
+        if form_data['condition']:
+            form_data['condition'] = form_data['condition'].pk
+        self.request.session['average_bmi_result'] = result
+        self.request.session['average_bmi_form'] = form_data
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -237,6 +298,7 @@ class HomeView(TemplateView):
         self._get_top_food_context(context, form_name)
         self._get_top_ailment_context(context, form_name)
         self._get_top_condition_context(context, form_name)
+        self._get_average_bmi_context(context, form_name)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -335,6 +397,7 @@ class LogViewSet(ModelViewSet):
     """API Views related with daily logs."""
     queryset = models.Log.objects.all()
     serializer_class = serializers.LogSerializer
+    filterset_class = filters.LogFilter
 
     def get_queryset(self):
         """Gets the queryset for the views.

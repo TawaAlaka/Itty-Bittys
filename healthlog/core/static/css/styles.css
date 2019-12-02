@@ -3,7 +3,7 @@
 }
 
 html {
-  font-size: 100%;
+  font-size: 87.5%;
   height: 100%;
 }
 
@@ -193,6 +193,14 @@ label {
   flex: 0 0 auto;
 }
 
+.header__logout {
+  margin-left: 1rem;
+}
+
+.header__logout .button {
+  margin-bottom: 0;
+}
+
 .charts__container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -210,6 +218,12 @@ label {
 .chart-group__results {
   flex: 1;
   margin-left: .5rem;
+}
+
+.chart-group__results--number {
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
 }
 
 .chart-group__table {
