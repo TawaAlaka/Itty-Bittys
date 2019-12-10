@@ -120,8 +120,6 @@ class FoodSerializer(serializers.ModelSerializer):
 
 
 class MealSerializer(serializers.ModelSerializer):
-    food = FoodSerializer()
-
     class Meta:
         model = models.Meal
         fields = ['id', 'log', 'time', 'food']

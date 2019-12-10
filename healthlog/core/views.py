@@ -361,9 +361,14 @@ class FoodViewSet(
 
 class MealViewSet(ModelViewSet):
     """API Views related with meal objects."""
-    queryset = models.Meal.objects.all().order_by('-log.time')
+    queryset = models.Meal.objects.all().order_by('-log__date')
     serializer_class = serializers.MealSerializer
     filterset_class = filters.MealFilter
+
+    def get_serializer_class(self):
+        if self.action in ('retrieve', 'list'):
+            return serializers.MealDetailSerializer
+        return self.serializer_class
 
     def get_queryset(self):
         """Gets the queryset for the views.

@@ -16,6 +16,8 @@ services:
       - 8000:80
     environment:
       HEALTH_LOG_SECRET: secret
+      HEALTH_LOG_DEFAULT_ADMIN_EMAIL: admin@email.com
+      HEALTH_LOG_DEFAULT_ADMIN_PASSWORD: testing_life
       HEALTH_LOG_DB_HOST: database
       HEALTH_LOG_DB_NAME: healthlog
       HEALTH_LOG_DB_USER: healthlog
